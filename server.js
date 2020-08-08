@@ -29,13 +29,13 @@ const download = (url, path, callback) => {
 //   image URL 
 const image_url = 'https://ibb.co/QKPDmzh'
 
-const path = './images/image_scan.png'
+const image_path = './images/image_scan.png'
 
 const post_download_callback = () => {
         console.log('Image download complete!')
         console.log('Recognizing Downloaded Image ....');
 
-        Tesseract.recognize(image, 'eng', { logger: m => console.log(m) })
+        Tesseract.recognize('https://ibb.co/QKPDmzh', 'eng', { logger: m => console.log(m) })
         .then(({ data: { text } }) => {
             console.log(text);
             res.send(`Scanned Text = ${text}`);
@@ -48,17 +48,20 @@ app.post('/api/scan', function(req, res) {
     var token = req.body.token;
     var geo = req.body.geo;
 
-    download(image_url, path, post_download_callback())
+    const { createWorker } = require('tesseract.js')
 
-    // const [,, imagePath] = process.argv;
-    // const image = path.resolve(__dirname, (myimage || 'images/images.png'));
+const worker = createWorker({
+  logger: m => console.log(m)
+});
 
-    // console.log(`Recognizing ${image}`);
-
-
-    
-
-    
+(async () => {
+  await worker.load();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+  const { data: { text } } = await worker.recognize('./images/images.png');
+  console.log(text);
+  await worker.terminate();
+})();
 
 });
 
